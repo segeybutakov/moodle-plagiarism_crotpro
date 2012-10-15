@@ -186,31 +186,71 @@ class plagiarism_plugin_crotpro extends plagiarism_plugin {
     }
 }
 
-function crot_event_file_uploaded_crotpro($eventdata) {
+function crot_event_files_done_crotpro($eventdata) {
     global $DB;
     $result = true;
         //a file has been uploaded - submit this to the plagiarism prevention service.
         
     return $result;
 }
-function crot_event_files_done_crotpro($eventdata) {
+
+function crot_event_file_uploaded_crotpro($eventdata) {
     global $DB;
     global $CFG;
     $result = true;
         //mainly used by assignment finalize - used if you want to handle "submit for marking" events
         //a file has been uploaded/finalised - submit this to the plagiarism prevention service.
-    $plagiarismvalues = $DB->get_records_menu('plagiarism_crotpro_config', array('cm'=>$eventdata->cmid),'','name,value');
+//sw        
+	$cmid = (!empty($eventdata->cm->id)) ? $eventdata->cm->id : $eventdata->cmid;
+	$plagiarismvalues = $DB->get_records_menu('plagiarism_crotpro_config', array('cm'=>$cmid), '', 'name,value');
+//ws	
+//        $plagiarismvalues = $DB->get_records_menu('plagiarism_crotpro_config', array('cm'=>$eventdata->cmid),'','name,value');
     if (empty($plagiarismvalues['crotpro_use'])) {
         return $result;
     }
     else {
+//sw
+	$cm = $DB->get_record('course_modules', array('id' => $eventdata->cmid));
+        $modulename = $DB->get_field('modules', 'name', array('id' => $cm->module));
+        require_once("$CFG->dirroot/mod/$modulename/lib.php");
+//ws    
         $modulecontext = get_context_instance(CONTEXT_MODULE, $eventdata->cmid);
         $fs = get_file_storage();
         $status_value = array('queue','sent');
-        if ($files = $fs->get_area_files($modulecontext->id, 'mod_assignment','submission', $eventdata->itemid)) {
-           // put files that were submitted for marking into queue for check up
-            foreach ($files as $file) {
-                if ($file->get_filename()==='.') {
+//sw
+// main
+        if ($eventdata->modulename == 'assignment') {
+            $assignmentbase = new assignment_base($cmid);
+            $submission = $assignmentbase->get_submission($eventdata->userid);
+            $modulecontext = get_context_instance(CONTEXT_MODULE, $eventdata->cmid);
+            $fs = get_file_storage();
+            if ($files = $fs->get_area_files($modulecontext->id, 'mod_assignment', 'submission', $submission->id, "timemodified", false)) {
+                foreach ($files as $file) {
+                    if ($file->get_filename() ==='.') {
+                        // This 'file' is actually a directory - nothing to submit.
+                        continue;
+                    }
+                    
+                $newelement = new stdclass();
+                $newelement->file_id = $file->get_id();
+                $newelement->path = $file->get_contenthash();
+                $newelement->status = $status_value[0]; 
+                $newelement->time = time();
+                $newelement->cm = $eventdata->cmid;    
+                $newelement->courseid = $eventdata->courseid;
+                $result=$DB->insert_record('plagiarism_crotpro_files', $newelement);
+                echo "\nfile ".$file->get_filename()." was queued up for crot PDS!\n";
+                }
+            }
+        }
+        else {
+            if ($eventdata->modulename == 'assign') {
+//sw
+            foreach ($eventdata->pathnamehashes as $hash) {
+                $fs = get_file_storage();
+                $file = $fs->get_file_by_hash($hash);
+                if ($file->get_filename() ==='.') {
+                // This 'file' is actually a directory - nothing to submit.
                     continue;
                 }
                 
@@ -223,8 +263,13 @@ function crot_event_files_done_crotpro($eventdata) {
                 $newelement->courseid = $eventdata->courseid;
                 $result=$DB->insert_record('plagiarism_crotpro_files', $newelement);
                 echo "\nfile ".$file->get_filename()." was queued up for crot PDS!\n";
+                
             }
+//ws
+            } //end assign
         }
+
+///ws
         return $result;
     }
 }

@@ -17,6 +17,7 @@
     $file_id = required_param('id', PARAM_INT);   // file id
     $source_id = required_param('source', PARAM_INT);   // source id
     
+
     if (!$sub = $DB->get_record("plagiarism_crotpro_job", array("file_id" => $file_id))) {
         print_error(get_string('incorrect_file','plagiarism_crotpro'));        
     }
@@ -24,10 +25,27 @@
     if (!$file = $DB->get_record("files", array("id" => $sub->file_id))) {
         print_error(get_string('incorrect_fileBid','plagiarism_crotpro'));
     }
-    if (!$submission = $DB->get_record("assignment_submissions", array("id" => $file->itemid))) {
+    // sw define type of the assignment
+	$asnAtype = $file-> component;
+        switch ($asnAtype) {
+            case "assignsubmission_file":
+		require_once($CFG->dirroot."/mod/assign/lib.php");
+                $asnAtable="assign";
+                $asnAsubm="assign_submission";
+                break;
+            case "mod_assignment":
+		require_once($CFG->dirroot."/mod/assignment/lib.php");
+                $asnAtable="assignment";
+                $asnAsubm="assignment_submissions";
+                break;
+        }
+
+//    if (!$submission = $DB->get_record("assignment_submissions", array("id" => $file->itemid))) {
+    if (!$submission = $DB->get_record($asnAsubm, array("id" => $file->itemid))) {
         print_error(get_string('incorrect_submBid','plagiarism_crotpro'));
     }
-    if (!$assign = $DB->get_record("assignment", array("id" => $submission->assignment))) {
+//    if (!$assign = $DB->get_record("assignment", array("id" => $submission->assignment))) {
+    if (!$assign = $DB->get_record($asnAtable, array("id" => $submission->assignment))) {
             print_error(get_string('incorrect_assignmentBid','plagiarism_crotpro'));
     }
     if (!$course = $DB->get_record("course", array("id" => $sub->courseid))) {
@@ -99,8 +117,8 @@ padding:2px;height:300px;overflow:scroll;border-width:2px;border-style:outset;ba
 --></STYLE>
 
 <?php
-    $textA = "<div id=\"example\"><FONT SIZE=1>".ereg_replace("\n","<br>",$textA)."</font> </div>";
-    $textB = "<div id=\"example\"><FONT SIZE=1>".ereg_replace("\n","<br>",$textB)."</font> </div>";
+    $textA = "<div id=\"example\"><FONT SIZE=1>".preg_replace('/\n/',"<br>",$textA)."</font> </div>";
+    $textB = "<div id=\"example\"><FONT SIZE=1>".ereg_replace('/\n/',"<br>",$textB)."</font> </div>";
     $table = new html_table();
     $table->head  = array ($strstudent, $web_link);
     $table->align = array ("center", "center");
