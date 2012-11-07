@@ -61,7 +61,7 @@
     $strmodulename = get_string("block_name", "plagiarism_crotpro");
     $strassignment  = get_string("assignments", "plagiarism_crotpro");
     
-    $view_url = new moodle_url('/mod/assignment/view.php', array('id' => $sub->cm));
+    $view_url = new moodle_url('/mod/'.$asnAtable.'/view.php', array('id' => $sub->cm));
     $PAGE->navbar->add($assign->name,$view_url);
     $PAGE->navbar->add($strmodulename. " - " . $strassignment);
     $PAGE->set_title($course->shortname.": ".$assign->name.": ".$strmodulename. " - " . $strassignment);
@@ -118,7 +118,7 @@ padding:2px;height:300px;overflow:scroll;border-width:2px;border-style:outset;ba
 
 <?php
     $textA = "<div id=\"example\"><FONT SIZE=1>".preg_replace('/\n/',"<br>",$textA)."</font> </div>";
-    $textB = "<div id=\"example\"><FONT SIZE=1>".ereg_replace('/\n/',"<br>",$textB)."</font> </div>";
+    $textB = "<div id=\"example\"><FONT SIZE=1>".preg_replace('/\n/',"<br>",$textB)."</font> </div>";
     $table = new html_table();
     $table->head  = array ($strstudent, $web_link);
     $table->align = array ("center", "center");
