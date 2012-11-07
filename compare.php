@@ -8,7 +8,6 @@
     require_once("../../config.php");
     global $CFG, $DB;
     require_once($CFG->dirroot."/course/lib.php");
-    require_once($CFG->dirroot."/mod/assignment/lib.php");
     
     // globals
     $plagiarismsettings = (array)get_config('plagiarism');
@@ -26,7 +25,7 @@
         print_error(get_string('incorrect_fileBid','plagiarism_crotpro'));
     }
     // sw define type of the assignment
-	$asnAtype = $file-> component;
+	$asnAtype = $file->component;
         switch ($asnAtype) {
             case "assignsubmission_file":
 		require_once($CFG->dirroot."/mod/assign/lib.php");
@@ -38,13 +37,13 @@
                 $asnAtable="assignment";
                 $asnAsubm="assignment_submissions";
                 break;
+            default:
+    		print_error("Assignment is not compatible");
         }
 
-//    if (!$submission = $DB->get_record("assignment_submissions", array("id" => $file->itemid))) {
     if (!$submission = $DB->get_record($asnAsubm, array("id" => $file->itemid))) {
         print_error(get_string('incorrect_submBid','plagiarism_crotpro'));
     }
-//    if (!$assign = $DB->get_record("assignment", array("id" => $submission->assignment))) {
     if (!$assign = $DB->get_record($asnAtable, array("id" => $submission->assignment))) {
             print_error(get_string('incorrect_assignmentBid','plagiarism_crotpro'));
     }
@@ -88,7 +87,11 @@
     $color_size = count($allColors);
     $color_counter = 0;
     // TODO create separate function for coloring ?
-    foreach($xml->pdrml->findings->feature as $feature){
+    
+    // reversing
+    foreach($xml->pdrml->findings->feature as $feature) $xmlArray[] = $feature;
+    $xmlArray = array_reverse($xmlArray);
+    foreach($xmlArray as $feature){
        if($color_size == $color_counter){
            $color_counter = 0;
        }
