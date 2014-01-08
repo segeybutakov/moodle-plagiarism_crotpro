@@ -32,6 +32,10 @@ INSTALLATION
 Simple screenshot with the settings is available at http://wiki.noplagiarism.org/    
 Note:if you change IP on your server you may need to get another account ID.
 
+6a: IMPORTANT: After you have saved CrotPro settings you need to Purge all caches in Development section in the Admin interface.
+Return to CrotPro settings and check if plugin is enabled and your account ID has been saved.
+
+
 7. Other settings you may change later based on your experience with the plug-in. 
 	The complete description of these settings is as follows:
 		- Student disclosure: This text will appear on the assignment submission page when student work will be uploaded to the system. Please note that Crot Pro does not compare submitted assignments between each other. The submitted assignment will be deleted from Crot Pro database as soon as your system will retrieve the checkup results from Crot Pro.
